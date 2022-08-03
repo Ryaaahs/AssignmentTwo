@@ -13,6 +13,8 @@ namespace EntityFramework.Data
         public DbSet<Brokerage> Brokerage { get; set; }
         public DbSet<Subscription> Subscription { get; set; }
 
+        public DbSet<Advertisement> Advestisement { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +45,12 @@ namespace EntityFramework.Data
                 .HasOne<Client>(s => s.Client)
                 .WithMany(b => b.Subscriptions)
                 .HasForeignKey(s => s.ClientId);
+
+            modelBuilder.Entity<Advertisement>()
+                .HasKey(a => a.Id);
+
+            modelBuilder.Entity<Advertisement>()
+                .ToTable("answer_image");
         }
     }
 }

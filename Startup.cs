@@ -17,6 +17,12 @@ namespace AssignmentTwo
             var connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<MarketDbContext>(options => options.UseSqlServer(connection));
             services.AddControllersWithViews();
+
+            var blobConnection = Configuration.GetConnectionString("AzureBlobStorage");
+            services.AddSingleton(new BlobServiceClient(blobConnection));
+
+            services.AddRazorPages();
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
