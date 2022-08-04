@@ -12,17 +12,44 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssignmentTwo.Migrations
 {
     [DbContext(typeof(MarketDbContext))]
-    [Migration("20220707174055_InitialCreate")]
+    [Migration("20220804004646_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.6")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("EntityFramework.Models.Advertisement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("BrokerageId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrokerageId");
+
+                    b.ToTable("advertisement", (string)null);
+                });
 
             modelBuilder.Entity("EntityFramework.Models.Brokerage", b =>
                 {
@@ -86,6 +113,17 @@ namespace AssignmentTwo.Migrations
                     b.ToTable("subscription", (string)null);
                 });
 
+            modelBuilder.Entity("EntityFramework.Models.Advertisement", b =>
+                {
+                    b.HasOne("EntityFramework.Models.Brokerage", "Brokerage")
+                        .WithMany("Advertisements")
+                        .HasForeignKey("BrokerageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brokerage");
+                });
+
             modelBuilder.Entity("EntityFramework.Models.Subscription", b =>
                 {
                     b.HasOne("EntityFramework.Models.Brokerage", "Brokerage")
@@ -107,6 +145,8 @@ namespace AssignmentTwo.Migrations
 
             modelBuilder.Entity("EntityFramework.Models.Brokerage", b =>
                 {
+                    b.Navigation("Advertisements");
+
                     b.Navigation("Subscriptions");
                 });
 

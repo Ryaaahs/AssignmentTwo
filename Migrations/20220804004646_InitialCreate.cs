@@ -38,6 +38,27 @@ namespace AssignmentTwo.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "advertisement",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BrokerageId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_advertisement", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_advertisement_brokerage_BrokerageId",
+                        column: x => x.BrokerageId,
+                        principalTable: "brokerage",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "subscription",
                 columns: table => new
                 {
@@ -63,6 +84,11 @@ namespace AssignmentTwo.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_advertisement_BrokerageId",
+                table: "advertisement",
+                column: "BrokerageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_subscription_ClientId",
                 table: "subscription",
                 column: "ClientId");
@@ -70,6 +96,9 @@ namespace AssignmentTwo.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "advertisement");
+
             migrationBuilder.DropTable(
                 name: "subscription");
 

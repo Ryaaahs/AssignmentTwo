@@ -50,7 +50,7 @@ namespace EntityFramework.Data
                 .HasKey(a => a.Id);
 
             modelBuilder.Entity<Advertisement>()
-                .ToTable("answer_image");
+                .ToTable("advertisement");
         }
     }
 }

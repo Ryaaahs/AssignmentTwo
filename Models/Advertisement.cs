@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityFramework.Models
 {
@@ -15,5 +16,11 @@ namespace EntityFramework.Models
         [Url]
         [DisplayName(" Url")]
         public string Url { get; set; }
+
+        [Required]
+        public string BrokerageId { get; set; }
+
+        [ForeignKey("BrokerageId")]
+        public Brokerage Brokerage { get; set; }
     }
 }

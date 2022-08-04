@@ -1,6 +1,6 @@
 ﻿using EntityFramework.Models;
 
-namespace AssignmentTwo.Models.ViewModels
+namespace EntityFramework.Models.ViewModels
 {
     public class AdsViewModel
     {

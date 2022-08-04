@@ -55,6 +55,11 @@ namespace AssignmentTwo.Controllers
             return View(viewModel);
         }
 
+        public IActionResult Ads(string id)
+        {
+            return RedirectToAction("Index", "Advertisements", new { id = id });
+        }
+
         // GET: Brokerages/Details/5
         public async Task<IActionResult> Details(string id)
         {

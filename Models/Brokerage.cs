@@ -23,5 +23,7 @@ namespace EntityFramework.Models
         public decimal Fee { get; set; }
 
         public ICollection<Subscription> Subscriptions { get; set; }
+
+        public ICollection<Advertisement> Advertisements { get; set; }
     }
 }
