@@ -8,16 +8,21 @@ using Microsoft.EntityFrameworkCore;
 using EntityFramework.Data;
 using EntityFramework.Models;
 using EntityFramework.Models.ViewModels;
+using Azure.Storage.Blobs;
 
 namespace AssignmentTwo.Controllers
 {
     public class AdvertisementsController : Controller
     {
         private readonly MarketDbContext _context;
+        private readonly String _blobConnectionString;
+        BlobServiceClient _blobServiceClient;
 
-        public AdvertisementsController(MarketDbContext context)
+        public AdvertisementsController(MarketDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _blobConnectionString = configuration.GetConnectionString("AzureBlobStorage");
+            _blobServiceClient = new BlobServiceClient(this._blobConnectionString);
         }
 
         // GET: Advertisements
@@ -29,7 +34,6 @@ namespace AssignmentTwo.Controllers
                   .Include(i => i.Advertisements)
                   .AsNoTracking()
                   .Where(m => m.Id == id)
-                  .OrderBy(i => i.Title)
                   .FirstOrDefaultAsync(),
 
                 Advertisements = await _context.Advestisement
@@ -61,9 +65,21 @@ namespace AssignmentTwo.Controllers
         }
 
         // GET: Advertisements/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create(string id)
         {
-            return View();
+            var Brokerage = await _context.Brokerage
+                 .Include(i => i.Advertisements)
+                 .AsNoTracking()
+                 .Where(m => m.Id == id)
+                 .FirstOrDefaultAsync();
+
+            var viewModel = new FileInputViewModel
+            {
+                BrokerageId = Brokerage.Id,
+                BrokerageTitle = Brokerage.Title,
+            };
+
+            return View(viewModel);
         }
 
         // POST: Advertisements/Create
@@ -71,15 +87,62 @@ namespace AssignmentTwo.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FileName,Url")] Advertisement advertisement)
+        public async Task<IActionResult> Create(IFormFile file, [Bind("BrokerageId")] Advertisement advertisement)
         {
-            if (ModelState.IsValid)
+            BlobContainerClient containerClient;
+            var containerName = "brokerage" + advertisement.BrokerageId.ToLower();
+            String brokerageId = advertisement.BrokerageId;
+
+            // Create the container and return a container client object
+            try
             {
-                _context.Add(advertisement);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                containerClient = await _blobServiceClient.CreateBlobContainerAsync(containerName, Azure.Storage.Blobs.Models.PublicAccessType.BlobContainer);
             }
-            return View(advertisement);
+            catch (Azure.RequestFailedException e)
+            {
+                containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            }
+
+
+            try
+            {
+                string randomFileName = Path.GetRandomFileName();
+                // create the blob to hold the data
+                var blockBlob = containerClient.GetBlobClient(randomFileName);
+                if (await blockBlob.ExistsAsync())
+                {
+                    await blockBlob.DeleteAsync();
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    // copy the file data into memory
+                    await file.CopyToAsync(memoryStream);
+
+                    // navigate back to the beginning of the memory stream
+                    memoryStream.Position = 0;
+
+                    // send the file to the cloud
+                    await blockBlob.UploadAsync(memoryStream);
+                    memoryStream.Close();
+                }
+
+                // add the photo to the database if it uploaded successfully
+                var image = new Advertisement
+                {
+                    Url = blockBlob.Uri.AbsoluteUri,
+                    FileName = randomFileName,
+                    BrokerageId = advertisement.BrokerageId,
+                };
+                _context.Advestisement.Add(image);
+                _context.SaveChanges();
+            }
+            catch (Azure.RequestFailedException)
+            {
+                return RedirectToPage("Index", new { id = advertisement.BrokerageId });
+            }
+
+            return RedirectToAction("Index", "Advertisements", new { id = brokerageId });
         }
 
         // GET: Advertisements/Edit/5
@@ -119,14 +182,14 @@ namespace AssignmentTwo.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AdvertisementExists(advertisement.Id))
+                    /*if (!Advertisement.Exists(advertisement.Id))
                     {
                         return NotFound();
                     }
                     else
                     {
                         throw;
-                    }
+                    }*/
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -154,25 +217,49 @@ namespace AssignmentTwo.Controllers
         // POST: Advertisements/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            if (_context.Advestisement == null)
+            if (id == null)
             {
-                return Problem("Entity set 'MarketDbContext.Advestisement'  is null.");
+                return NotFound();
             }
-            var advertisement = await _context.Advestisement.FindAsync(id);
-            if (advertisement != null)
-            {
-                _context.Advestisement.Remove(advertisement);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
 
-        private bool AdvertisementExists(int id)
-        {
-          return _context.Advestisement.Any(e => e.Id == id);
+            var Advestisement = await _context.Advestisement.FindAsync(id);
+            String brokerageId = Advestisement.BrokerageId;
+
+            if (Advestisement != null)
+            {
+                BlobContainerClient containerClient;
+                try
+                {
+                    var containerName = "brokerage" + Advestisement.BrokerageId.ToLower();
+                    containerClient = this._blobServiceClient.GetBlobContainerClient(containerName);
+                }
+                catch (Azure.RequestFailedException)
+                {
+                    return RedirectToPage("Error");
+                }
+
+                try
+                {
+                    // Get the blob that holds the data
+                    var blockBlob = containerClient.GetBlobClient(Advestisement.FileName);
+                    if (await blockBlob.ExistsAsync())
+                    {
+                        await blockBlob.DeleteAsync();
+                    }
+
+                    _context.Advestisement.Remove(Advestisement);
+                    await _context.SaveChangesAsync();
+
+                }
+                catch (Azure.RequestFailedException)
+                {
+                    return RedirectToPage("Error");
+                }
+            }
+
+            return RedirectToAction("Index", "Advertisements", new { id = brokerageId });
         }
     }
 }
