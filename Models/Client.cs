@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityFramework.Models
 {
+    /**
+     * Client
+     * Model class of the Client Entity
+     * 
+     * @author Reily Maahs
+     * @student_number 040963994
+     * @date 2022-08-06
+     */
     public class Client
     {
         public int Id { get; set; }

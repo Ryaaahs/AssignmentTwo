@@ -3,12 +3,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework.Data
 {
+    /**
+     * MarketDbContext
+     * Contains the databse context to make additions, deletions, modifications
+     * 
+     * @author Reily Maahs
+     * @student_number 040963994
+     * @date 2022-08-06
+     */
     public class MarketDbContext : DbContext
     {
         public MarketDbContext(DbContextOptions<MarketDbContext> options) : base(options)
         {
         }
 
+        // Application Entities
         public DbSet<Client> Client { get; set; }
         public DbSet<Brokerage> Brokerage { get; set; }
         public DbSet<Subscription> Subscription { get; set; }

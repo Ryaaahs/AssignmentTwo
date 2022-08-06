@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EntityFramework.Data;
 using EntityFramework.Models;
@@ -12,19 +7,44 @@ using Azure.Storage.Blobs;
 
 namespace AssignmentTwo.Controllers
 {
+    /**
+     * AdvertisementsController
+     * Contains all the route bindings for the Advertisement pages
+     * INDEX
+     * CREATE
+     * CREATE (POST)
+     * DELETE
+     * DELETE (POST)
+     * 
+     * @author Reily Maahs
+     * @student_number 040963994
+     * @date 2022-08-06
+     */
     public class AdvertisementsController : Controller
     {
         private readonly MarketDbContext _context;
         private readonly String _blobConnectionString;
         BlobServiceClient _blobServiceClient;
 
+        /**
+         * AdvertisementsController
+         * @param context Database content we use to make the assoicate with our Entities to the DB
+         * @param configuration Allows use to get access to the AzureBlobStorage connectionString
+         */
         public AdvertisementsController(MarketDbContext context, IConfiguration configuration)
         {
             _context = context;
             _blobConnectionString = configuration.GetConnectionString("AzureBlobStorage");
             _blobServiceClient = new BlobServiceClient(this._blobConnectionString);
         }
-
+        
+        /**
+         * Index
+         * Main view in the Adverisement
+         * 
+         * @param id Brokerage ID
+         * @returns AdsViewModel containing the brokerage selected and the advertiments tied to it
+         */
         // GET: Advertisements
         public async Task<IActionResult> Index(string id)
         {
@@ -46,24 +66,13 @@ namespace AssignmentTwo.Controllers
             return View(viewModel);
         }
 
-        // GET: Advertisements/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null || _context.Advestisement == null)
-            {
-                return NotFound();
-            }
-
-            var advertisement = await _context.Advestisement
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (advertisement == null)
-            {
-                return NotFound();
-            }
-
-            return View(advertisement);
-        }
-
+        /**
+         * Create
+         * Allows the user to create new Advertisements
+         * 
+         * @param id Brokerage ID
+         * @returns FileInputViewModel Passes in the Brokerage ID and Title to the view
+         */
         // GET: Advertisements/Create
         public async Task<IActionResult> Create(string id)
         {
@@ -82,9 +91,18 @@ namespace AssignmentTwo.Controllers
             return View(viewModel);
         }
 
+        /**
+         * Create (POST)
+         * Gathers all the data from the user and attempts to create a advertisement (Creating the blob, store the blob, 
+         * making the connect to the blob with the entity)
+         * 
+         * @param file IFormFile that we get from sending the image through a POST request
+         * @param BIND BrokerageId binds the brokerageID to the advertisement entity
+         * @returns Redirect Sends the user back to the main Index page, along with the brokerageID
+         * 
+         * IF THERE IS AN ERROR: Redirect the user to the error page
+         */
         // POST: Advertisements/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(IFormFile file, [Bind("BrokerageId")] Advertisement advertisement)
@@ -139,63 +157,20 @@ namespace AssignmentTwo.Controllers
             }
             catch (Azure.RequestFailedException)
             {
-                return RedirectToPage("Index", new { id = advertisement.BrokerageId });
+                return RedirectToAction("Error", "Error");
             }
 
             return RedirectToAction("Index", "Advertisements", new { id = brokerageId });
         }
 
-        // GET: Advertisements/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Advestisement == null)
-            {
-                return NotFound();
-            }
-
-            var advertisement = await _context.Advestisement.FindAsync(id);
-            if (advertisement == null)
-            {
-                return NotFound();
-            }
-            return View(advertisement);
-        }
-
-        // POST: Advertisements/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FileName,Url")] Advertisement advertisement)
-        {
-            if (id != advertisement.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(advertisement);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    /*if (!Advertisement.Exists(advertisement.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }*/
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(advertisement);
-        }
-
+        /**
+         * Delete
+         * Gives the user the option to remove Advertisements from a brokerage
+         * 
+         * @param int? Advertisement Id that we want to remove
+         * @returns Advertisement model that we use within the Delete cshtml page
+         * 
+         */
         // GET: Advertisements/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -214,6 +189,15 @@ namespace AssignmentTwo.Controllers
             return View(advertisement);
         }
 
+        /**
+         * Create (POST)
+         * Removes the advertisement from the database (DB/AzureBlobStorage)
+         * 
+         * @param int? Advertisement Id that we want to remove
+         * @returns Sends the user back to the Ads index page, along with the brokerageID to continue the process
+         * 
+         * IF THERE IS AN ERROR: Redirect the user to the error page
+         */
         // POST: Advertisements/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -237,7 +221,7 @@ namespace AssignmentTwo.Controllers
                 }
                 catch (Azure.RequestFailedException)
                 {
-                    return RedirectToPage("Error");
+                    return RedirectToAction("Error", "Error");
                 }
 
                 try
@@ -255,7 +239,7 @@ namespace AssignmentTwo.Controllers
                 }
                 catch (Azure.RequestFailedException)
                 {
-                    return RedirectToPage("Error");
+                    return RedirectToAction("Error", "Error");
                 }
             }
 

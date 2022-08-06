@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityFramework.Models
 {
+    /**
+     * Brokerage
+     * Model class of the Brokerage Entity
+     * 
+     * @author Reily Maahs
+     * @student_number 040963994
+     * @date 2022-08-06
+     */
     public class Brokerage
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]

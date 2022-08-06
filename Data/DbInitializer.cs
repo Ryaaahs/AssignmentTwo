@@ -2,7 +2,15 @@
 using EntityFramework.Data;
 
 namespace EntityFramework.Data
-{   
+{
+    /**
+     * DbInitializer
+     * Creates the migration for the project database
+     * 
+     * @author Reily Maahs
+     * @student_number 040963994
+     * @date 2022-08-06
+     */
     public static class DbInitializer
     {
         public static void Initialize(MarketDbContext context)
