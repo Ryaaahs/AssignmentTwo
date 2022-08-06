@@ -1,7 +1,7 @@
 ﻿@model EntityFramework.Models.ViewModels.ClientSubscriptionsViewModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Edit - " + @Model.Client.FirstName + " Subscriptions";
 }
 
 <!DOCTYPE html>
@@ -32,7 +32,7 @@
                 <thead>
                     <tr>
                         <th>
-                            Name
+                            Brokerage Name
                         </th>
                     </tr>
                 </thead>

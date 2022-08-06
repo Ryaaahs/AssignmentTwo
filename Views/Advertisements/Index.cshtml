@@ -1,7 +1,7 @@
 ﻿@model EntityFramework.Models.ViewModels.AdsViewModel
 
 @{
-    ViewData["Title"] = "Show Ads for Brokerage " + @Model.Brokerage.Title;
+    ViewData["Title"] = @Model.Brokerage.Title + " Advertisements";
 }
 
 <h1>Show Ads for Brokerage @Model.Brokerage.Title</h1>
