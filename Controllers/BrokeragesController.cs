@@ -226,7 +226,8 @@ namespace AssignmentTwo.Controllers
                 return NotFound();
             }
 
-            var brokerage = await _context.Brokerage
+            var brokerage = await _context.Brokerage.Include(i => i.Advertisements)
+                  .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (brokerage == null)
             {
