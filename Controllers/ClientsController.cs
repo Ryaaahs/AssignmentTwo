@@ -79,7 +79,7 @@ namespace AssignmentTwo.Controllers
 
             viewModel = new ClientsBrokerageView
             {
-                CurrentClientBrokerages = brokerageTitles.Count == 0 ? null : brokerageTitles,
+                CurrentClientBrokerages = brokerageTitles,
                 Clients = Clients,
             };
 

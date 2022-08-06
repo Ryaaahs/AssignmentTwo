@@ -47,36 +47,40 @@
         }
     </tbody>
 </table>
-<h3>Member of the following brokerages </h3>
+
 @if(Model.CurrentClientBrokerages != null)
 {
-  <table class="table">
-        <thead>
-            <tr>
-                <th>
-                    Name
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.CurrentClientBrokerages) {
+    <h3>Member of the following brokerages </h3>
+    if(Model.CurrentClientBrokerages.Count() != 0)
+    {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>
-                        @item
-                    </td>
+                    <th>
+                        Name
+                    </th>
                 </tr>
-            }
-        </tbody>
-   </table>  
-} else {
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>
-                    No subscription record exist 
-                </th>
-            </tr>
-        </tbody>
-   </table> 
+            </thead>
+            <tbody>
+                @foreach (var item in Model.CurrentClientBrokerages) {
+                    <tr>
+                        <td>
+                            @item
+                        </td>
+                    </tr>
+                }
+            </tbody>
+       </table>
+    } else {
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>
+                        No subscription record exist 
+                    </th>
+                </tr>
+            </tbody>
+       </table> 
+    }   
 }
 
