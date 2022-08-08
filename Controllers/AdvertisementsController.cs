@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EntityFramework.Data;
 using EntityFramework.Models;
@@ -185,6 +186,14 @@ namespace AssignmentTwo.Controllers
             {
                 return NotFound();
             }
+
+            var brokerage = await _context.Brokerage
+                  .Include(i => i.Advertisements)
+                  .AsNoTracking()
+                  .Where(m => m.Id == advertisement.BrokerageId)
+                  .FirstOrDefaultAsync();
+
+            advertisement.Brokerage = brokerage;
 
             return View(advertisement);
         }
